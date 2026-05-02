@@ -28,7 +28,7 @@ export interface Transaction {
 }
 
 export interface CreateTransactionInput {
-    walledAddress: string;
+    walletAddress: string;
     transactionHash: string;
     amount: number;
 }
@@ -38,7 +38,7 @@ export interface PaginatedTransactions {
     total: number;
     page: number;
     limit: number;
-    pageSize: number;
+    totalPages: number;
 }
 
 export interface TransactionFilters {
