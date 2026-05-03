@@ -12,8 +12,13 @@ export default function LoginLeftPanel() {
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-[rgba(5,13,26,0.3)] via-[rgba(5,13,26,0.1)] to-[rgba(5,13,26,0.6)]" />
 
       <div className="relative z-10 flex flex-row gap-3 items-center">
-        <img src="/assets/images/bc-logo.png" alt="BotCalm logo" className="w-10 h-10 object-contain" />
-          <div className="text-md font-bold text-white leading-5">BotCalm <br/>Deposit System</div>
+        <img src="/assets/images/bc-logo.png" alt="BotCalm logo" className="w-8 h-8 object-contain" />
+          <div className="flex flex-col gap-px">
+              <span className="text-white font-bold text-[16px] leading-none">BotCalm</span>
+              <span className="text-white text-[9px] tracking-[0.12em] uppercase font-mono leading-none">
+              DEPOSIT SYSTEM
+            </span>
+          </div>
       </div>
 
       <div className="flex-1 flex items-center relative z-10">

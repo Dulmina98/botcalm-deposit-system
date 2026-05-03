@@ -21,18 +21,15 @@ export default function Navbar({ username, isConnected, onLogout }: NavbarProps)
 
       <nav className="fixed top-0 left-0 right-0 h-14 z-50 flex items-center justify-between px-6 bg-[rgba(5,13,26,0.8)] backdrop-blur-[12px] border-b border-[rgba(20,184,166,0.1)]">
 
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-[9px] bg-gradient-to-br from-[#14b8a6] to-[#0d9488] flex items-center justify-center flex-shrink-0">
-            <span className="text-white font-bold text-[16px] leading-none">B</span>
-          </div>
-
-          <div className="flex flex-col gap-px">
-            <span className="text-white font-bold text-[16px] leading-none">BotCalm</span>
-            <span className="text-[rgba(20,184,166,0.7)] text-[9px] tracking-[0.12em] uppercase font-mono leading-none">
+          <div className="relative z-10 flex flex-row gap-3 items-center">
+              <img src="/assets/images/bc-logo.png" alt="BotCalm logo" className="w-8 h-8 object-contain" />
+              <div className="flex flex-col gap-px">
+                  <span className="text-white font-bold text-[16px] leading-none">BotCalm</span>
+                  <span className="text-white text-[9px] tracking-[0.12em] uppercase font-mono leading-none">
               DEPOSIT SYSTEM
             </span>
+              </div>
           </div>
-        </div>
 
         <div className="flex items-center gap-2.5">
             <div className="flex items-center gap-[7px] bg-[rgba(20,184,166,0.08)] border border-[rgba(20,184,166,0.15)] rounded-[20px] px-3 py-[5px]">
