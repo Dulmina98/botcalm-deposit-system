@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../../context/AuthContext';
+import {useCallback, useEffect, useState} from 'react';
+import {useAuth} from '../../context/AuthContext';
 import useSocket from '../../hooks/useSocket';
-import { getWallets } from '../../api';
-import type { Transaction, Wallet } from '../../types';
+import {getWallets} from '../../api';
+import type {Transaction, Wallet} from '../../types';
 import Navbar from './Navbar';
+import WalletSection from './WalletSection';
 
 export default function Dashboard() {
   const { token, username, logout } = useAuth();
@@ -49,14 +50,15 @@ export default function Dashboard() {
       <main className="pt-14 relative z-[1]">
         <div className="p-6 grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-5">
 
-          <div className="bg-[rgba(13,22,40,0.7)] border border-[rgba(20,184,166,0.12)] rounded-[14px] p-6 text-[#64748b] text-[13px] font-mono">
-            WalletSection coming soon
-          </div>
+          <WalletSection
+            wallets={wallets}
+            loading={walletsLoading}
+            onWalletAdded={handleWalletAdded}
+          />
 
           <div className="bg-[rgba(13,22,40,0.7)] border border-[rgba(20,184,166,0.12)] rounded-[14px] p-6 text-[#64748b] text-[13px] font-mono">
             TransactionSection coming soon
           </div>
-
         </div>
       </main>
     </div>
