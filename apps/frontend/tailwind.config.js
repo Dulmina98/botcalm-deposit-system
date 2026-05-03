@@ -4,17 +4,17 @@ export default {
   theme: {
     extend: {
       colors: {
-        bg: '#0a0f1e',
-        surface: '#111827',
-        surface2: '#1a2235',
-        indigo: {
-          DEFAULT: '#6366f1',
-          light: '#818cf8',
-          dim: 'rgba(99,102,241,0.15)',
+        bg: '#050d1a',
+        surface: '#0a1628',
+        surface2: '#0f1f35',
+        accent: {
+          DEFAULT: '#14b8a6',
+          light: '#2dd4bf',
+          dim: 'rgba(20,184,166,0.12)',
         },
         border: {
-          DEFAULT: 'rgba(99,120,160,0.18)',
-          strong: 'rgba(99,120,160,0.35)',
+          DEFAULT: 'rgba(20,184,166,0.15)',
+          strong: 'rgba(20,184,166,0.30)',
         },
         text: {
           DEFAULT: '#e2e8f0',
