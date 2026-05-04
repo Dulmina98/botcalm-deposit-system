@@ -5,6 +5,7 @@ import {getWallets} from '../../api';
 import type {Transaction, Wallet} from '../../types';
 import Navbar from './Navbar';
 import WalletSection from './WalletSection';
+import TransactionSection from './TransactionSection';
 
 export default function Dashboard() {
   const { token, username, logout } = useAuth();
@@ -56,9 +57,7 @@ export default function Dashboard() {
             onWalletAdded={handleWalletAdded}
           />
 
-          <div className="bg-[rgba(13,22,40,0.7)] border border-[rgba(20,184,166,0.12)] rounded-[14px] p-6 text-[#64748b] text-[13px] font-mono">
-            TransactionSection coming soon
-          </div>
+          <TransactionSection wallets={wallets} latestUpdate={latestUpdate} />
         </div>
       </main>
     </div>
