@@ -1,8 +1,16 @@
+import http from 'http';
 import bcrypt from 'bcryptjs';
 import { runMigrations, pool } from '../../src/config/db';
-import { httpServer } from '../../src/app';
+import { app } from '../../src/app';
+import depositQueue from '../../src/workers/depositWorker';
 
-export async function startTestServer(): Promise<typeof httpServer> {
+export async function startTestServer(): Promise<http.Server> {
+  // Clear stale jobs left over from previous test runs
+  await depositQueue.clean(0, 'failed');
+  await depositQueue.clean(0, 'wait');
+  await depositQueue.clean(0, 'active');
+  await depositQueue.clean(0, 'delayed');
+
   // Run DB migrations against the test database
   await runMigrations();
 
@@ -17,14 +25,15 @@ export async function startTestServer(): Promise<typeof httpServer> {
 
   // Start the HTTP server on the test port
   return new Promise((resolve) => {
-    httpServer.listen(5002, () => resolve(httpServer));
+    const server = http.createServer(app);
+    server.listen(5002, () => resolve(server));
   });
 }
 
-export async function stopTestServer(server: typeof httpServer): Promise<void> {
+export async function stopTestServer(server: http.Server): Promise<void> {
+  await depositQueue.close();
   await new Promise<void>((resolve, reject) => {
     server.close((err) => (err ? reject(err) : resolve()));
   });
   await pool.end();
 }
-

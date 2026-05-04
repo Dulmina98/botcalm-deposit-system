@@ -6,7 +6,6 @@ import http from "http";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
-import { initSocket } from "./socket";
 import errorHandler from "./middleware/errorHandler";
 import authRouter from "./routes/auth";
 import walletsRouter from "./routes/wallets";
@@ -14,7 +13,6 @@ import transactionsRouter from "./routes/transactions";
 
 const app = express();
 const httpServer = http.createServer(app);
-initSocket(httpServer);
 
 app.use(helmet());
 app.use(cors({ origin: process.env.CLIENT_ORIGIN }));

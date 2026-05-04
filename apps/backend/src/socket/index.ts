@@ -47,5 +47,6 @@ export function getIO(): SocketIOServer {
 }
 
 export function emitTransactionUpdate(transaction: Transaction): void {
-  getIO().emit("transaction_updated", transaction);
+  if (!io) return;
+  io.emit("transaction_updated", transaction);
 }
