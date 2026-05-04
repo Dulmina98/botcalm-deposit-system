@@ -1,159 +1,207 @@
-# Turborepo starter
+# BotCalm — Real-Time Deposit Processing System
 
-This Turborepo starter is maintained by the Turborepo core team.
+## Overview
+One paragraph describing what the system does: real-time deposit processing with idempotent transaction handling, async background processing, and WebSocket-powered live updates.
 
-## Using this example
+## Tech Stack
 
-Run the following command:
+| Layer | Technology | Reason |
+| :--- | :--- | :--- |
+| Runtime | Node.js 18 + TypeScript | Type safety, production-grade code quality |
+| Framework | Express.js | Lightweight, flexible REST API |
+| Database | PostgreSQL 15 | ACID guarantees critical for financial transaction data |
+| Queue | Bull + Redis | Decouples deposit ingestion from processing, enables async retry |
+| WebSockets | Socket.IO | Real-time transaction status updates without polling |
+| Frontend | React 18 + Vite + TypeScript | Fast development, type-safe UI |
+| Styling | Tailwind CSS | Utility-first, consistent design system |
+| Monorepo | Turborepo + pnpm | Shared tooling, parallel builds |
+| Auth | JWT + bcryptjs | Stateless authentication, secure password hashing |
+| Logging | Winston | Structured JSON logs for observability |
+| Testing | Jest + ts-jest + Supertest | Type-safe integration tests |
+| Containers | Docker + Docker Compose | One-command reproducible environment |
 
-```sh
-npx create-turbo@latest
+## Architecture
+
+```text
+┌─────────────────────────────────────────────────┐
+│           React + Vite + TypeScript             │
+│   Login ─── Dashboard ─── WalletSection         │
+│                       └── TransactionSection    │
+│         HTTP (REST)          WebSocket          │
+└──────────────┬───────────────────┬──────────────┘
+               │                   │
+┌──────────────▼───────────────────▼──────────────┐
+│         Node.js + Express + TypeScript          │
+│   /auth   /wallets   /deposits   /transactions  │
+│                  Socket.IO Server               │
+│              Bull Queue Producer                │
+└──────────────┬───────────────────┬──────────────┘
+               │                   │
+┌──────────▼──────┐   ┌────────▼────────┐
+│   PostgreSQL    │   │  Redis + Bull   │
+│ users/wallets/  │   │  Worker Queue   │
+│  transactions   │   │  (async jobs)   │
+└─────────────────┘   └─────────────────┘
 ```
 
-## What's inside?
+## Deposit Flow
+1. Client sends POST `/api/v1/deposits` with JWT auth
+2. Server validates request and checks wallet exists
+3. `INSERT ... ON CONFLICT (transaction_hash) DO NOTHING` — idempotency at DB level
+4. New transaction stored as 'pending'
+5. Job added to Bull queue in Redis
+6. HTTP response returned immediately (non-blocking)
+7. Bull worker picks up job asynchronously
+8. Worker simulates processing (1s delay representing blockchain confirmation)
+9. Status updated to 'processed' or 'failed'
+10. Callback triggered with exponential backoff retry
+11. Socket.IO emits `transaction_updated` to all connected clients
+12. Dashboard updates in real-time without page refresh
 
-This Turborepo includes the following packages/apps:
+## Key Design Decisions
 
-### Apps and Packages
+### Idempotency
+PostgreSQL unique constraint on `transaction_hash` combined with `INSERT ... ON CONFLICT DO NOTHING` guarantees that duplicate deposits are silently ignored at the database level — no application-level locking needed, safe under concurrent requests.
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+### Concurrency Safety
+Each deposit uses a dedicated pg client with `BEGIN/COMMIT` transaction block. The wallet existence check and transaction insert happen atomically, preventing race conditions.
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+### Async Processing
+Bull queue decouples the HTTP request from the actual processing work. The API responds in milliseconds while heavy work (processing, callbacks, retries) happens in the background worker.
 
-### Utilities
+### Exponential Backoff
+Failed callbacks retry with delay = `2^attempt * 1000ms` (2s, 4s, 8s). Prevents thundering herd against struggling external systems.
 
-This Turborepo has some additional tools already setup for you:
+### Type Safety
+All shared data shapes (`Transaction`, `Wallet`, `TransactionStatus`) are defined as TypeScript interfaces. The `TransactionStatus` union type (`'pending'` | `'processed'` | `'failed'`) prevents invalid status strings at compile time.
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+### camelCase Mapping
+PostgreSQL returns `snake_case` column names. The `toTransaction()` and `toWallet()` mapper functions in `config/db.ts` convert to `camelCase` at the database boundary so all application code works with consistent naming.
 
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
+## Project Structure
+```text
+botcalm-deposit-system/
+├── apps/
+│   ├── backend/
+│   │   ├── src/
+│   │   │   ├── config/        # DB pool, Redis client
+│   │   │   ├── middleware/    # Auth, error handler
+│   │   │   ├── migrations/    # SQL schema
+│   │   │   ├── routes/        # Auth, wallets, transactions
+│   │   │   ├── services/      # Business logic
+│   │   │   ├── socket/        # Socket.IO setup
+│   │   │   ├── types/         # TypeScript interfaces
+│   │   │   ├── utils/         # Logger
+│   │   │   ├── workers/       # Bull queue processor
+│   │   │   ├── app.ts         # Express app (no side effects)
+│   │   │   └── server.ts      # Entry point, starts server
+│   │   └── tests/             # Integration tests
+│   └── frontend/
+│       └── src/
+│           ├── api/           # Axios instance + API calls
+│           ├── components/
+│           │   ├── ui/        # Button, Badge, Card, FormInput
+│           │   ├── login/     # Login, LoginForm, LoginLeftPanel
+│           │   └── dashboard/ # Dashboard, Navbar, Wallet*, Transaction*
+│           ├── context/       # AuthContext, ToastContext
+│           ├── hooks/         # useSocket
+│           └── types/         # Frontend TypeScript interfaces
+├── docker-compose.yml
+└── turbo.json
 ```
 
-Without global `turbo`, use your package manager:
+## Setup Instructions
 
-```sh
-cd my-turborepo
-npx turbo build
-pnpm dlx turbo build
-pnpm exec turbo build
+### Option A — Docker (recommended for reviewers)
+Requirements: Docker Desktop
+
+```bash
+git clone <repo-url>
+cd botcalm-deposit-system
+docker-compose up --build
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+Then open:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:5001
+- Health check: http://localhost:5001/health
+- Default credentials: `admin` / `admin123`
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+### Option B — Local Development
+Requirements: Node.js 18+, pnpm, PostgreSQL 15, Redis 7
 
-```sh
-turbo build --filter=docs
+```bash
+# Install dependencies
+pnpm install
+
+# Create database
+psql -U postgres -c "CREATE DATABASE botcalm;"
+
+# Start services (in separate terminals)
+cd apps/backend && pnpm dev
+cd apps/frontend && pnpm dev
 ```
 
-Without global `turbo`:
+Then open http://localhost:5173
 
-```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+### Run Tests
+```bash
+# Create test database first
+psql -U postgres -c "CREATE DATABASE botcalm_test;"
+
+cd apps/backend
+pnpm test
 ```
 
-### Develop
+## API Documentation
 
-To develop all apps and packages, run the following command:
+### Authentication
+`POST /api/v1/auth/login`
+- Body: `{ "username": "admin", "password": "password" }`
+- Response: `{ "token": "...", "username": "admin" }`
+- No auth required
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+### Wallets
+`GET /api/v1/wallets` — returns all wallets (auth required)
+`POST /api/v1/wallets` — creates wallet (auth required)
+- Body: `{ "address": "0x..." }`
+- Errors: 400 missing address, 409 duplicate
 
-```sh
-cd my-turborepo
-turbo dev
-```
+### Deposits & Transactions
+`POST /api/v1/deposits` — submit deposit (auth required)
+- Body: `{ "walletAddress": "0x...", "transactionHash": "0x...", "amount": 10.5 }`
+- New: 201 + Transaction object (status: pending)
+- Duplicate: 200 + `{ "duplicate": true }`
+- Errors: 400 invalid fields, 404 wallet not found
 
-Without global `turbo`, use your package manager:
+`GET /api/v1/transactions` — paginated list (auth required)
+- Query: `page`, `limit`, `status`, `walletAddress`
+- Response: `{ "transactions": [...], "total": 10, "page": 1, "limit": 10, "totalPages": 1 }`
 
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
-```
+`GET /health` — health check (no auth)
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+### WebSocket Events
+Connect: pass JWT in `socket.handshake.auth.token`
+Event `transaction_updated`: emitted when any transaction status changes
+Payload: full Transaction object
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+## Assumptions and Limitations
+- Callback system is mocked (logged only) — production would POST to a real webhook URL
+- Single admin user seeded at startup — no user registration UI
+- No HTTPS — production would require reverse proxy (Nginx/load balancer) with TLS
+- Rate limiting is per-IP, 100 requests per 15 minutes
+- WebSocket connections require valid JWT — unauthenticated connections are rejected
+- Amount precision: stored as `DECIMAL(20,8)` supporting up to 8 decimal places
 
-```sh
-turbo dev --filter=web
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+## Bonus Features Implemented
+- Background worker with Bull queue and Redis
+- WebSocket real-time updates via Socket.IO
+- Docker + Docker Compose setup
+- Unit/integration tests with Jest + Supertest + ts-jest
+- Pagination for transactions
+- Filtering by status and wallet address
+- Exponential backoff on callback retries
+- Structured JSON logging with Winston
+- Rate limiting with express-rate-limit
+- API versioning (`/api/v1/`)
+- Turborepo monorepo with pnpm workspaces
