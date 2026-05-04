@@ -43,7 +43,7 @@ export function toTransaction(row: Record<string, unknown>): Transaction {
     id: row.id as number,
     wallet_address: row.wallet_address as string,
     transaction_hash: row.transaction_hash as string,
-    amount: row.amount as number,
+    amount: parseFloat(row.amount as string),
     status: row.status as Transaction["status"],
     retry_count: row.retry_count as number,
     error_message: row.error_message as string | undefined,
