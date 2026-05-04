@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import Spinner from "./Spinner.tsx";
 
 type Variant = 'primary' | 'ghost' | 'danger';
 
@@ -53,7 +54,7 @@ export default function Button({
       ].join(' ')}
     >
       {loading && (
-        <span className="w-[14px] h-[14px] rounded-full border-2 border-white/30 border-t-white inline-block animate-spin" />
+        <Spinner/>
       )}
       {children}
     </button>
