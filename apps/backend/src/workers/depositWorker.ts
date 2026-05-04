@@ -28,57 +28,59 @@ export async function addDepositJob(
   );
 }
 
-depositQueue.process(async (job) => {
-  const { transactionId } = job.data as DepositJobPayload;
+export function startDepositWorker(): void {
+  depositQueue.process(async (job) => {
+    const { transactionId } = job.data as DepositJobPayload;
 
-  const transaction = await getTransactionById(transactionId);
-  if (!transaction) {
-    throw new Error(`Transaction ${transactionId} not found`);
-  }
-
-  await new Promise<void>((resolve) => setTimeout(resolve, 1000));
-
-  try {
-    await updateTransactionStatus(transactionId, "processed");
-
-    const updatedTransaction = await getTransactionById(transactionId);
-    if (updatedTransaction) {
-      await triggerCallback(updatedTransaction);
-      emitTransactionUpdate(updatedTransaction);
-    }
-  } catch (err) {
-    await incrementRetryCount(transactionId);
-
-    const refreshed = await getTransactionById(transactionId);
-    if (refreshed && refreshed.retry_count >= 3) {
-      await updateTransactionStatus(
-        transactionId,
-        "failed",
-        (err as Error).message
-      );
-      const failed = await getTransactionById(transactionId);
-      if (failed) emitTransactionUpdate(failed);
+    const transaction = await getTransactionById(transactionId);
+    if (!transaction) {
+      throw new Error(`Transaction ${transactionId} not found`);
     }
 
-    throw err;
-  }
-});
+    await new Promise<void>((resolve) => setTimeout(resolve, 1000));
 
-depositQueue.on("completed", (job) => {
-  logger.info("Deposit job completed", { jobId: job.id, transactionId: job.data.transactionId });
-});
+    try {
+      await updateTransactionStatus(transactionId, "processed");
 
-depositQueue.on("failed", (job, err) => {
-  logger.error("Deposit job failed", {
-    jobId: job.id,
-    transactionId: job.data.transactionId,
-    error: err.message,
-    attemptsMade: job.attemptsMade,
+      const updatedTransaction = await getTransactionById(transactionId);
+      if (updatedTransaction) {
+        await triggerCallback(updatedTransaction);
+        emitTransactionUpdate(updatedTransaction);
+      }
+    } catch (err) {
+      await incrementRetryCount(transactionId);
+
+      const refreshed = await getTransactionById(transactionId);
+      if (refreshed && refreshed.retry_count >= 3) {
+        await updateTransactionStatus(
+          transactionId,
+          "failed",
+          (err as Error).message
+        );
+        const failed = await getTransactionById(transactionId);
+        if (failed) emitTransactionUpdate(failed);
+      }
+
+      throw err;
+    }
   });
-});
 
-depositQueue.on("stalled", (job) => {
-  logger.warn("Deposit job stalled", { jobId: job.id, transactionId: job.data.transactionId });
-});
+  depositQueue.on("completed", (job) => {
+    logger.info("Deposit job completed", { jobId: job.id, transactionId: job.data.transactionId });
+  });
+
+  depositQueue.on("failed", (job, err) => {
+    logger.error("Deposit job failed", {
+      jobId: job.id,
+      transactionId: job.data.transactionId,
+      error: err.message,
+      attemptsMade: job.attemptsMade,
+    });
+  });
+
+  depositQueue.on("stalled", (job) => {
+    logger.warn("Deposit job stalled", { jobId: job.id, transactionId: job.data.transactionId });
+  });
+}
 
 export default depositQueue;
