@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
-    "start": "node dist/app.js",
-    "test": "jest --runInBand"
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "start": "node dist/server.js",
+    "test": "jest --runInBand --forceExit"
   },
   "keywords": [],
   "author": "",
