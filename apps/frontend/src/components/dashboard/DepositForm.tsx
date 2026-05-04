@@ -78,7 +78,6 @@ export default function DepositForm({ wallets }: DepositFormProps) {
 
   return (
     <div>
-      {/* ── Collapsible header ── */}
       <div
         className="flex items-center justify-between cursor-pointer select-none"
         onClick={() => setExpanded((prev) => !prev)}
@@ -87,23 +86,20 @@ export default function DepositForm({ wallets }: DepositFormProps) {
           ⊕ New Deposit
         </span>
         <span
-          className="text-[#64748b] text-[14px] transition-transform duration-200"
+          className="text-[#64748b] text-[30px] leading-[10px] transition-transform duration-200"
           style={{ transform: expanded ? 'rotate(0deg)' : 'rotate(-90deg)' }}
         >
           ▾
         </span>
       </div>
 
-      {/* ── Expandable form ── */}
       {expanded && (
         <form
           onSubmit={handleSubmit}
           className="animate-slide-up mt-4"
         >
-          {/* Three-column grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-            {/* Field 1 — Wallet Address */}
             <div>
               <label className={labelClass}>Wallet Address</label>
               <select
@@ -123,7 +119,6 @@ export default function DepositForm({ wallets }: DepositFormProps) {
               </select>
             </div>
 
-            {/* Field 2 — Transaction Hash */}
             <div>
               <label className={labelClass}>Transaction Hash</label>
               <input
@@ -136,7 +131,6 @@ export default function DepositForm({ wallets }: DepositFormProps) {
               />
             </div>
 
-            {/* Field 3 — Amount */}
             <div>
               <label className={labelClass}>Amount</label>
               <input
@@ -152,7 +146,6 @@ export default function DepositForm({ wallets }: DepositFormProps) {
             </div>
           </div>
 
-          {/* Submit */}
           <div className="mt-4">
             <Button
               type="submit"
