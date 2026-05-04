@@ -45,9 +45,7 @@ CREATE INDEX IF NOT EXISTS idx_transactions_hash
     ON transactions(transaction_hash);
 
 -- Default admin user
+DELETE FROM users WHERE username = 'admin';
 INSERT INTO users (username, password_hash)
-VALUES (
-           'admin',
-           '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'
-       )
-    ON CONFLICT (username) DO NOTHING;
+VALUES ('admin', '$2b$10$h5llFqS36QnK7b2B5GGoU.fqmQid.TJCbmjcpE9LilnCKfyiSBNna')
+ON CONFLICT (username) DO UPDATE SET password_hash = EXCLUDED.password_hash;
