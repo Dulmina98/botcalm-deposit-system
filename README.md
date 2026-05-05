@@ -22,26 +22,40 @@ BotCalm is a full-stack real-time deposit processing system built with Node.js, 
 
 ## Architecture
 
-```text
-┌─────────────────────────────────────────────────┐
-│           React + Vite + TypeScript             │
-│   Login ─── Dashboard ─── WalletSection         │
-│                       └── TransactionSection    │
-│         HTTP (REST)          WebSocket          │
-└──────────────┬───────────────────┬──────────────┘
-               │                   │
-┌──────────────▼───────────────────▼──────────────┐
-│         Node.js + Express + TypeScript          │
-│   /auth   /wallets   /deposits   /transactions  │
-│                  Socket.IO Server               │
-│              Bull Queue Producer                │
-└──────────────┬───────────────────┬──────────────┘
-               │                   │
-┌──────────▼──────┐   ┌────────▼────────┐
-│   PostgreSQL    │   │  Redis + Bull   │
-│ users/wallets/  │   │  Worker Queue   │
-│  transactions   │   │  (async jobs)   │
-└─────────────────┘   └─────────────────┘
+```mermaid
+flowchart TB
+    subgraph FE["React + Vite + TypeScript"]
+        Login
+        Dashboard
+        WalletSection
+        TransactionSection
+    end
+
+    subgraph BE["Node.js + Express + TypeScript"]
+        Auth["/auth"]
+        Wallets["/wallets"]
+        Deposits["/deposits"]
+        Transactions["/transactions"]
+        SocketIO["Socket.IO Server"]
+        BullProducer["Bull Queue Producer"]
+    end
+
+    subgraph DB["PostgreSQL"]
+        Users["users"]
+        WalletsDB["wallets"]
+        TransactionsDB["transactions"]
+    end
+
+    subgraph Queue["Redis + Bull"]
+        Worker["Queue Worker (async jobs)"]
+    end
+
+    FE -->|"HTTP REST"| BE
+    FE <-->|"WebSocket"| SocketIO
+    BE --> DB
+    BullProducer --> Queue
+    Worker --> DB
+    SocketIO -->|"transaction_updated"| FE
 ```
 
 ## Deposit Flow
