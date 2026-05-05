@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { PaginatedTransactions, Transaction, Wallet } from '../../types';
+import type { PaginatedTransactions, Transaction, TransactionStatus, Wallet } from '../../types';
 import { getTransactions } from '../../api';
 import Card from '../ui/Card';
 import DepositForm from './DepositForm';
@@ -16,7 +16,7 @@ export default function TransactionSection({ wallets, latestUpdate }: Transactio
   const [data, setData] = useState<PaginatedTransactions | null>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState<TransactionStatus | ''>('');
   const [walletFilter, setWalletFilter] = useState('');
   const [flashedIds, setFlashedIds] = useState<Set<number>>(new Set());
 
@@ -57,7 +57,7 @@ export default function TransactionSection({ wallets, latestUpdate }: Transactio
   }, [latestUpdate]);
 
   function handleStatusChange(value: string) {
-    setStatusFilter(value);
+    setStatusFilter(value as TransactionStatus | '');
     setPage(1);
   }
 

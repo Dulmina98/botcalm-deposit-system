@@ -7,6 +7,10 @@ COPY apps/frontend/package.json ./apps/frontend/
 RUN npm install -g pnpm
 RUN pnpm install --filter frontend
 COPY apps/frontend/ ./apps/frontend/
+ARG VITE_API_URL
+ARG VITE_SOCKET_URL
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_SOCKET_URL=$VITE_SOCKET_URL
 RUN pnpm --filter frontend build
 
 FROM nginx:alpine AS production

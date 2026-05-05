@@ -18,4 +18,4 @@ COPY --from=builder /app/apps/backend/dist ./apps/backend/dist
 COPY apps/backend/src/migrations/ ./apps/backend/dist/migrations/
 RUN mkdir -p logs
 EXPOSE 5000
-CMD ["node", "apps/backend/dist/app.js"]
+CMD ["node", "apps/backend/dist/server.js"]
