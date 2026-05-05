@@ -23,25 +23,33 @@ export default function LoginLeftPanel() {
 
       <div className="flex-1 flex items-center relative z-10">
         <div className="w-full rounded-xl p-5 backdrop-blur-[12px] bg-[rgba(5,13,26,0.5)] border border-[rgba(20,184,166,0.2)]">
-          <div className="text-[11px] text-white/50 tracking-[0.08em] uppercase mb-3">
-            Live Statistics
+          <div className="text-[11px] text-white/50 tracking-[0.08em] uppercase mb-3 font-mono">
+            Why BotCalm
           </div>
-          <div className="flex flex-col gap-[10px]">
-            <div className="flex justify-between items-center">
-              <span className="text-[13px] text-white/70">Total Processed</span>
-              <span className="text-[13px] font-semibold text-status-green">12,847</span>
+          {[
+            { icon: '⚡', title: 'Real-Time Updates', desc: 'WebSocket-powered live transaction status' },
+            { icon: '◈', title: 'Idempotent Processing', desc: 'Duplicate deposits safely rejected at DB level' },
+            { icon: '⟳', title: 'Async Queue', desc: 'Bull + Redis worker with exponential backoff retry' },
+            { icon: '⚿', title: 'JWT Protected', desc: 'Stateless auth securing every API route' },
+          ].map((f) => (
+            <div key={f.title} className="flex items-start gap-3" style={{ marginBottom: '10px' }}>
+              <div
+                className="flex items-center justify-center shrink-0 rounded-md text-[#14b8a6] text-[11px]"
+                style={{
+                  width: 20,
+                  height: 20,
+                  background: 'rgba(20,184,166,0.12)',
+                  border: '1px solid rgba(20,184,166,0.2)',
+                }}
+              >
+                {f.icon}
+              </div>
+              <div>
+                <div className="text-[13px] text-white/80 font-medium">{f.title}</div>
+                <div className="text-[11px] text-white/50 leading-snug">{f.desc}</div>
+              </div>
             </div>
-            <div className="h-px bg-white/[0.08]" />
-            <div className="flex justify-between items-center">
-              <span className="text-[13px] text-white/70">Pending</span>
-              <span className="text-[13px] font-semibold text-status-yellow">3</span>
-            </div>
-            <div className="h-px bg-white/[0.08]" />
-            <div className="flex justify-between items-center">
-              <span className="text-[13px] text-white/70">Failed</span>
-              <span className="text-[13px] font-semibold text-status-green">0</span>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
 
