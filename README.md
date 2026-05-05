@@ -1,7 +1,7 @@
 # BotCalm — Real-Time Deposit Processing System
 
 ## Overview
-One paragraph describing what the system does: real-time deposit processing with idempotent transaction handling, async background processing, and WebSocket-powered live updates.
+BotCalm is a full-stack real-time deposit processing system built with Node.js, TypeScript, and React. It handles wallet registration, deposit ingestion, and asynchronous transaction processing via a Bull/Redis queue. Transactions are processed with full idempotency guarantees — duplicate submissions are safely rejected at the database level using PostgreSQL's conflict resolution. A Socket.IO WebSocket layer pushes live status updates to the dashboard the moment a transaction is processed, without any polling.
 
 ## Tech Stack
 
@@ -157,7 +157,7 @@ pnpm test
 
 ### Authentication
 `POST /api/v1/auth/login`
-- Body: `{ "username": "admin", "password": "password" }`
+- Body: `{ "username": "admin", "password": "admin123" }`
 - Response: `{ "token": "...", "username": "admin" }`
 - No auth required
 
